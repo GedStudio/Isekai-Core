@@ -8,8 +8,8 @@ object CommandRegistry {
 
     private val ISEKAI_COMMAND = EzCommand
         .literal("isekai")
-        .executes(CommandSenderInvoker { sender, argument ->
-            sender.sendMessage("isekai.message.text")
+        .executes(CommandSenderInvoker { sender, _ ->
+            sender.sendMessage("isekai.message.test")
             return@CommandSenderInvoker 1
         })
 

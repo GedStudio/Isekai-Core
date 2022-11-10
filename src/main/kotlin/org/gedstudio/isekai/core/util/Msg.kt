@@ -21,6 +21,12 @@ object Msg {
     private var text: JsonObject = JsonObject()
 
     private fun getMsg(format: String): String {
+        if (text.get(format).isJsonArray) {
+            val strings = ArrayList<String>()
+            for (element in text.getAsJsonArray(format))
+                strings.add(element.asString)
+            return strings.joinToString("<newline>")
+        }
         return text.get(format).asString
     }
 
@@ -49,7 +55,6 @@ object Msg {
     }
 
     fun fromJson(element: JsonElement): Component {
-        println(element.toString())
         return SERIALIZER.deserializeFromTree(element)
     }
 
@@ -58,7 +63,9 @@ object Msg {
         parent.mkdirs()
         file.createNewFile()
         val default = JsonObject()
-        default.addProperty("isekai.message.text", "This is a test isekai message!")
+        default.addProperty("isekai.message.test", "This is a test isekai message!")
+        default.addProperty("isekai.message.unknown-command", "<red><bold>(!) <reset><red>Unknown command! Type \"/help\" to get help!")
+
         val fileWriter = FileWriter(file)
         fileWriter.write(GSON.toJson(default))
         fileWriter.close()

@@ -9,6 +9,7 @@ import net.kyori.adventure.text.Component
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
 import org.bukkit.entity.Player
 import org.gedstudio.isekai.core.IsekaiCore
+import org.gedstudio.isekai.core.util.Json
 import org.gedstudio.isekai.core.util.Msg
 
 object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
@@ -22,6 +23,7 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
             val clientboundSystemChatPacket = packet
             var solved: JsonObject
             try {
+                // If the server is paper based, enter this structure
                 val clazz = ClientboundSystemChatPacket::class.java
                 val field = clazz.getDeclaredField("adventure\$content")
                 field.isAccessible = true
@@ -32,28 +34,36 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
                     solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
                 else
                     solveObject(Msg.asJsonObject(component as Component))
+                // println(clientboundSystemChatPacket.content)
+                // println(if (component == null) null else Msg.asJson(component as Component))
             } catch (e: NoSuchFieldException) {
+                // Throw exception or error, so the server is spigot or craftbukkit
                 if (clientboundSystemChatPacket.content == null)
                     return clientboundSystemChatPacket
                 solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
             } catch (e: NoSuchFieldError) {
+                // Throw exception or error, so the server is spigot or craftbukkit
                 if (clientboundSystemChatPacket.content == null)
                     return clientboundSystemChatPacket
                 solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
             }
 
             return try {
+                // If the server is spigot or craftbukkit
                 ClientboundSystemChatPacket(
                     Msg.GSON.toJson(solved),
                     clientboundSystemChatPacket.c()
                 )
             } catch (e: NoSuchMethodException) {
+                // Throw exception or error, so the server is paper based
                 val clazz = ClientboundSystemChatPacket::class.java
                 val constructor = clazz.getConstructor(Component::class.java, Boolean::class.java)
                 constructor.newInstance(Msg.fromJson(solved), clientboundSystemChatPacket.c())
             } catch (e: NoSuchMethodError) {
+                // Throw exception or error, so the server is paper based
                 val clazz = ClientboundSystemChatPacket::class.java
                 val constructor = clazz.getConstructor(Component::class.java, Boolean::class.java)
+                // println(solved)
                 constructor.newInstance(Msg.fromJson(solved), clientboundSystemChatPacket.c())
             }
         }
@@ -66,16 +76,22 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
             val text = obj.getAsJsonPrimitive("text")
             if (text.isString) {
                 val format = text.asString
-                if (format.startsWith("isekai.message.") && Msg.has(format)) {
-                    obj.remove("text")
+                if (format.startsWith("isekai.") && Msg.has(format)) {
                     newObj = JsonParser.parseString(Msg.asJson(format)).asJsonObject
                 } else {
-                    newObj.add("text", text)
+                    newObj = obj.deepCopy()!!
+                    newObj.remove("extra")
                 }
+            } else {
+                newObj = obj.deepCopy()!!
+                newObj.remove("extra")
             }
+        } else {
+            newObj = obj.deepCopy()!!
+            newObj.remove("extra")
         }
-        val newArray = JsonArray()
         if (obj.has("extra") && obj.get("extra").isJsonArray) {
+            val newArray = JsonArray()
             for (element in obj.getAsJsonArray("extra")) {
                 if (element !is JsonObject) {
                     newArray.add(element)
@@ -84,9 +100,15 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
                 val jsonObject = element.asJsonObject
                 newArray.add(solveObject(jsonObject))
             }
+            if (newArray.size() > 0) {
+                if (newObj.has("extra") && newObj.get("extra").isJsonArray && newObj.getAsJsonArray("extra").size() > 0) {
+                    val oldExtra = newObj.getAsJsonArray("extra")
+                    newObj.remove("extra")
+                    newObj.add("extra", Json.allIn(oldExtra, newArray))
+                } else
+                    newObj.add("extra", newArray)
+            }
         }
-        if (newArray.size() > 0)
-            newObj.add("extra", newArray)
         return newObj
     }
 

@@ -21,7 +21,8 @@ dependencies {
     compileOnly("org.spigotmc:spigot:1.19.2-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
     implementation("net.deechael:Useless:1.03.1")
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
 }
 
 tasks.withType<KotlinCompile> {
