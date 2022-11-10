@@ -11,7 +11,7 @@ object CommandFactory : Listener {
         listOf(
             "help",
             "isekai",
-            "plugin"
+            "plugins"
         )
 
     private val ALLOWED_COMMANDS: List<String>
@@ -37,12 +37,15 @@ object CommandFactory : Listener {
 
     @EventHandler
     fun onExecutingCommand(event: PlayerCommandPreprocessEvent) {
-        var cmd = event.message.substring(1)
+        var cmd = event.message.substring(1).lowercase()
         cmd = cmd.removeSuffix(" ")
         if (cmd.contains(" "))
             cmd = cmd.split(" ")[0]
-        if (cmd in ALLOWED_COMMANDS)
+        if (cmd in ALLOWED_COMMANDS) {
+            if (cmd == "plugins")
+                event.message = "/isekai:plugins"
             return
+        }
         event.isCancelled = true
         event.player.sendMessage("isekai.message.unknown-command")
     }

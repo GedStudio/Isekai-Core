@@ -20,6 +20,7 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
 
     override fun onPacketSendAsync(receiver: Player?, channel: Channel, packet: Any): Any? {
         if (packet is ClientboundSystemChatPacket) {
+            val locale = receiver?.locale()?.toString()?.lowercase() ?: "en_us"
             val clientboundSystemChatPacket = packet
             var solved: JsonObject
             try {
@@ -31,21 +32,21 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
                 if (component == null && clientboundSystemChatPacket.content == null)
                     return clientboundSystemChatPacket
                 solved = if (clientboundSystemChatPacket.content != null)
-                    solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
+                    solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject, locale)
                 else
-                    solveObject(Msg.asJsonObject(component as Component))
+                    solveObject(Msg.asJsonObject(component as Component), locale)
                 // println(clientboundSystemChatPacket.content)
                 // println(if (component == null) null else Msg.asJson(component as Component))
             } catch (e: NoSuchFieldException) {
                 // Throw exception or error, so the server is spigot or craftbukkit
                 if (clientboundSystemChatPacket.content == null)
                     return clientboundSystemChatPacket
-                solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
+                solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject, locale)
             } catch (e: NoSuchFieldError) {
                 // Throw exception or error, so the server is spigot or craftbukkit
                 if (clientboundSystemChatPacket.content == null)
                     return clientboundSystemChatPacket
-                solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject)
+                solved = solveObject(JsonParser.parseString(clientboundSystemChatPacket.content!!).asJsonObject, locale)
             }
 
             return try {
@@ -70,14 +71,14 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
         return packet
     }
 
-    private fun solveObject(obj: JsonObject): JsonObject {
+    private fun solveObject(obj: JsonObject, locale: String): JsonObject {
         var newObj = JsonObject()
         if (obj.has("text") && obj.get("text").isJsonPrimitive) {
             val text = obj.getAsJsonPrimitive("text")
             if (text.isString) {
                 val format = text.asString
                 if (format.startsWith("isekai.") && Msg.has(format)) {
-                    newObj = JsonParser.parseString(Msg.asJson(format)).asJsonObject
+                    newObj = JsonParser.parseString(Msg.asJson(format, locale)).asJsonObject
                 } else {
                     newObj = obj.deepCopy()!!
                     newObj.remove("extra")
@@ -98,7 +99,7 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
                     continue
                 }
                 val jsonObject = element.asJsonObject
-                newArray.add(solveObject(jsonObject))
+                newArray.add(solveObject(jsonObject, locale))
             }
             if (newArray.size() > 0) {
                 if (newObj.has("extra") && newObj.get("extra").isJsonArray && newObj.getAsJsonArray("extra").size() > 0) {

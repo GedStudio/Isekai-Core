@@ -27,7 +27,7 @@ class IsekaiCore : JavaPlugin() {
         Bukkit.getPluginManager().registerEvents(CommandFactory, this)
         CommandRegistry.init()
         PermissionRegistry.init()
-        Msg.init()
+        Msg.reload()
     }
 
     companion object {
