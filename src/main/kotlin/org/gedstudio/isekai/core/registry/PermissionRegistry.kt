@@ -7,7 +7,19 @@ import org.bukkit.permissions.PermissionDefault
 object PermissionRegistry {
 
     fun init() {
-        Bukkit.getPluginManager().addPermission(Permission("isekai.op", PermissionDefault.FALSE))
+        no("isekai.op")
+    }
+
+    private fun no(permission: String) {
+        Bukkit.getPluginManager().addPermission(Permission(permission, PermissionDefault.FALSE))
+    }
+
+    private fun yes(permission: String) {
+        Bukkit.getPluginManager().addPermission(Permission(permission, PermissionDefault.TRUE))
+    }
+
+    private fun op(permission: String) {
+        Bukkit.getPluginManager().addPermission(Permission(permission, PermissionDefault.OP))
     }
 
 }

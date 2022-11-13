@@ -1,6 +1,6 @@
 package org.gedstudio.isekai.core.listener
 
-import com.fren_gor.lightInjector.LightInjector
+import org.gedstudio.isekai.lib.open.protocol.LightInjector
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser

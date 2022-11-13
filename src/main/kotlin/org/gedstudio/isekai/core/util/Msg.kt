@@ -22,9 +22,11 @@ object Msg {
 
     private var lang: MutableMap<String, JsonObject> = HashMap()
 
-    private fun getMsg(format: String, locale: String = "en_us"): String {
-        if (lang.containsKey(locale.lowercase())) {
+    private fun getMsg(format: String, locale: String = "text"): String {
+        if (lang.containsKey(locale.lowercase()) && locale != "text") {
             val text = lang[locale.lowercase()]!!
+            if (!text.has(format))
+                return getMsg(format, "text")
             if (text.get(format).isJsonArray) {
                 val strings = ArrayList<String>()
                 for (element in text.getAsJsonArray(format))
@@ -51,7 +53,7 @@ object Msg {
         return text.has(format)
     }
 
-    fun get(format: String, locale: String = "en_us"): Component {
+    fun get(format: String, locale: String = "text"): Component {
         return mini().deserialize(getMsg(format, locale.lowercase()))
     }
 
@@ -63,7 +65,7 @@ object Msg {
         return SERIALIZER.serializeToTree(component).asJsonObject
     }
 
-    fun asJson(format: String, locale: String = "en_us"): String {
+    fun asJson(format: String, locale: String = "text"): String {
         return asJson(get(format, locale.lowercase()))
     }
 

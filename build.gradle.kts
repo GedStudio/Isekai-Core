@@ -1,6 +1,12 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+buildscript {
+    repositories {
+        maven("https://maven.fabricmc.net/")
+    }
+}
+
 plugins {
     java
     kotlin("jvm") version "1.7.10"
@@ -20,6 +26,7 @@ repositories {
 dependencies {
     compileOnly("org.spigotmc:spigot:1.19.2-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT")
+    implementation(files("./libs/gs-world-plugin-2.10.0-SNAPSHOT.jar"))
     implementation("net.deechael:Useless:1.03.1")
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.7.21")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21")
