@@ -6,7 +6,10 @@ import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import io.netty.channel.Channel
 import net.kyori.adventure.text.Component
+import net.minecraft.network.chat.IChatBaseComponent
+import net.minecraft.network.chat.contents.LiteralContents
 import net.minecraft.network.protocol.game.ClientboundSystemChatPacket
+import net.minecraft.network.protocol.game.PacketPlayOutOpenWindow
 import org.bukkit.entity.Player
 import org.gedstudio.isekai.core.IsekaiCore
 import org.gedstudio.isekai.core.util.Json
@@ -67,12 +70,22 @@ object MessageFactory : LightInjector(IsekaiCore.getIsekaiCore()) {
                 // println(solved)
                 constructor.newInstance(Msg.fromJson(solved), clientboundSystemChatPacket.c())
             }
+        } else if (packet is PacketPlayOutOpenWindow) {
+            val locale = receiver?.locale()?.toString()?.lowercase() ?: "en_us"
+            val component = packet.d().b()
+            if (component !is LiteralContents)
+                return packet
+            val format = component.a()
+            if (format.startsWith("isekai.") && Msg.has(format)) {
+                val newTitle = JsonParser.parseString(Msg.asJson(format, locale)).asJsonObject
+                return PacketPlayOutOpenWindow(packet.b(), packet.c(), IChatBaseComponent.ChatSerializer.a(newTitle))
+            }
         }
         return packet
     }
 
     private fun solveObject(obj: JsonObject, locale: String): JsonObject {
-        var newObj = JsonObject()
+        val newObj: JsonObject
         if (obj.has("text") && obj.get("text").isJsonPrimitive) {
             val text = obj.getAsJsonPrimitive("text")
             if (text.isString) {
